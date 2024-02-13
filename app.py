@@ -1,48 +1,34 @@
-import wikipediaapi
-import re
+import wikipedia
+import requests
+from flask import Flask, request, jsonify
 
+app = Flask(__name__)
 
-def remove_html_tags(text):
-    # The regular expression pattern to match HTML tags
-    tag_pattern = re.compile(r'<[^>]+>')
-    # Remove the matched tags
-    cleaned_text = tag_pattern.sub('', text)
-    return cleaned_text
-
-def main():
-    wiki_wiki = wikipediaapi.Wikipedia(
-        user_agent='WikiApi (marek.tengler@protonmail.com)',
-            language='cs',
-            extract_format=wikipediaapi.ExtractFormat.HTML
-    )
-
-    search_term = 'Voda'
-
-    page_html = wiki_wiki.page(search_term)
-
-    does_page_exist = page_html.exists()
-
-
-    #Check for garbage tag in wiki page, clean page_html.text so I can find first paragraph
-    if '<p class="mw-empty-elt">' in page_html.text:
-        first_paragraph_start = page_html.text.find('<p>', page_html.text.find('<p class="mw-empty-elt">') + 1)
+@app.route('/wiki/<search_term>', methods=['GET'])
+def get_wikipedia_info(search_term):
+    #language = request.headers.get(Accept-Language)
+    language = request.args.get('Accept-Language')
+    
+    if language:
+        wikipedia.set_lang(language)
     else:
-        first_paragraph_start = page_html.text.find('<p>')
+        wikipedia.set_lang("cs")
 
-    first_paragraph_end = page_html.text.find('</p>', page_html.text.find('</p>') + 1) 
+    try:
+        wikipedia_response = wikipedia.summary(search_term, auto_suggest=False)
+    except wikipedia.exceptions.DisambiguationError as e:
+        return e.options, 303
+    except wikipedia.exceptions.PageError as e:
+        return "No content found", 404
+
+    return wikipedia_response, 200
 
 
-    search_results = wiki_wiki.search(search_term, result=10)
+@app.errorhandler(requests.exceptions.ConnectionError)
+def handle_connection_error(e):
+    return jsonify({"error": "Failed to connect to the Wikipedia server"}),  500
 
-    print(search_results)
-    print(does_page_exist)
 
-    print(
-        remove_html_tags(
-            page_html.text[first_paragraph_start:first_paragraph_end]
-            )
-        )
 
-if __name__ == "__main__":
-    main()
-
+if __name__ == '__main__':
+    app.run(debug=True)
