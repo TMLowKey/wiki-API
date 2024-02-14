@@ -58,9 +58,13 @@ This API is used for getting quick summaries of Wikipedia articles. It uses Flas
   - `$ Invoke-WebRequest -URI http://127.0.0.1:5000/wiki/vodka?Accept-Language="en" | Select-Object -Expand Content`
   - `$ Invoke-WebRequest -URI http://127.0.0.1:5000/wiki/"Vin rosé"?Accept-Language="fr" | Select-Object -Expand Content`
 ## Format of API answer
-Api will return json file in format:
-{ "message": "state of search"
-  "data": "result of your search"
-  "code": "contain HTTP resonse status codes"}
+Api will return json file in format:  
+```
+{
+  "message": "state of search"  
+  "data": "result of your search"  
+  "code": "contain HTTP resonse status codes"
+}
+```
 ## Unit Test
 - To run tests, you can use `$ python -m unittest test.py`.
