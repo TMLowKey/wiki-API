@@ -23,18 +23,18 @@ def get_wikipedia_info(search_term):
             wikipedia_response = {'message': "Search term found", 'data':wikipedia.summary(search_term, auto_suggest = False), 'Code':200}
     except wikipedia.exceptions.DisambiguationError as e:
         # Appear when wiki API dont find term but there is suggested terms
-        return {'message': "Did you meant", 'data': e.options, 'Code': 404}
+        return json.dumps({'message': "Did you meant", 'data': e.options, 'Code': 404}, ensure_ascii=False)
     except wikipedia.exceptions.PageError as e:
         # Appear when there is no wikipedia suggested article
         return {'message': "Search term not found", 'data': None, 'Code': 404}
     
+    # ensure_ascii is turn off because displaying czech unicodes
     return json.dumps(wikipedia_response, ensure_ascii=False),  200
 
 
 @app.errorhandler(requests.exceptions.ConnectionError)
 def handle_connection_error(e):
-    return jsonify({"error": "Failed to connect to the Wikipedia server"}),  500
-
+    return jsonify({"error": "Failed to connect to the Wikipedia server, check if you have right language code 'en' for english 'cs' for czech."}),  500
 
 
 if __name__ == '__main__':
